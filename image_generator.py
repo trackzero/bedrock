@@ -95,7 +95,7 @@ class BedrockRuntimeWrapper:
                     "taskType": "TEXT_IMAGE",
                     "textToImageParams": {"text": prompt},
                     "imageGenerationConfig": {
-                        "numberOfImages": 4,
+                        "numberOfImages": 1,
                         "quality": "standard",
                         "cfgScale": 8.0,
                         "height": 1024,
@@ -110,7 +110,7 @@ class BedrockRuntimeWrapper:
             )
 
             response_body = json.loads(response["body"].read())
-            base64_image_data = response_body["images"][0]
+            base64_image_data = response_body["images"][0]  # loop here for multiple images?
 
             return base64_image_data
 
@@ -165,8 +165,7 @@ def invoke(wrapper, model_id, prompt, style_preset=None):
 
 def usage_demo():
     """
-    Demonstrates the invocation of various large-language and image generation models:
-    Anthropic Claude 2, AI21 Labs Jurassic-2, and Stability.ai Stable Diffusion XL.
+    Demonstrates the invocation of Stable Diffusion XL and Titan for image generation.
     """
     logging.basicConfig(level=logging.INFO)
     print("-" * 88)
@@ -177,7 +176,7 @@ def usage_demo():
 
     wrapper = BedrockRuntimeWrapper(client)
 
-    image_generation_prompt = input("Enter your image prompt") #no error handling, as is my way.
+    image_generation_prompt = input("Enter your image prompt: ") #no error handling, as is my way.
 
     image_style_preset = "photographic"
 
@@ -193,5 +192,3 @@ def usage_demo():
 
 if __name__ == "__main__":
     usage_demo()
-
-# snippet-end:[python.example_code.bedrock-runtime.BedrockRuntimeWrapper.class]
