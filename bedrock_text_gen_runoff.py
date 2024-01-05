@@ -149,95 +149,7 @@ class BedrockRuntimeWrapper:
             raise
 
     # snippet-end:[python.example_code.bedrock-runtime.InvokeMetaLlama2]
-
-    # snippet-start:[python.example_code.bedrock-runtime.InvokeStableDiffusion]
-    def invoke_stable_diffusion(self, prompt, seed, style_preset=None):
-        """
-        Invokes the Stability.ai Stable Diffusion XL model to create an image using
-        the input provided in the request body.
-
-        :param prompt: The prompt that you want Stable Diffusion  to use for image generation.
-        :param seed: Random noise seed (omit this option or use 0 for a random seed)
-        :param style_preset: Pass in a style preset to guide the image model towards
-                             a particular style.
-        :return: Base64-encoded inference response from the model.
-        """
-
-        try:
-            # The different model providers have individual request and response formats.
-            # For the format, ranges, and available style_presets of Stable Diffusion models refer to:
-            # https://platform.stability.ai/docs/api-reference#tag/v1generation
-
-            body = {
-                "text_prompts": [{"text": prompt}],
-                "seed": seed,
-                "cfg_scale": 10,
-                "steps": 30,
-            }
-
-            if style_preset:
-                body["style_preset"] = style_preset
-
-            response = self.bedrock_runtime_client.invoke_model(
-                modelId="stability.stable-diffusion-xl", body=json.dumps(body)
-            )
-
-            response_body = json.loads(response["body"].read())
-            base64_image_data = response_body["artifacts"][0]["base64"]
-
-            return base64_image_data
-
-        except ClientError:
-            logger.error("Couldn't invoke Stable Diffusion XL")
-            raise
-
-    # snippet-end:[python.example_code.bedrock-runtime.InvokeStableDiffusion]
-
-    # snippet-start:[python.example_code.bedrock-runtime.InvokeTitanImage]
-    def invoke_titan_image(self, prompt, seed):
-        """
-        Invokes the Titan Image model to create an image using the input provided in the request body.
-
-        :param prompt: The prompt that you want Amazon Titan to use for image generation.
-        :param seed: Random noise seed (range: 0 to 2147483647)
-        :return: Base64-encoded inference response from the model.
-        """
-
-        try:
-            # The different model providers have individual request and response formats.
-            # For the format, ranges, and default values for Titan Image models refer to:
-            # https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-image.html
-
-            request = json.dumps(
-                {
-                    "taskType": "TEXT_IMAGE",
-                    "textToImageParams": {"text": prompt},
-                    "imageGenerationConfig": {
-                        "numberOfImages": 1,
-                        "quality": "standard",
-                        "cfgScale": 8.0,
-                        "height": 512,
-                        "width": 512,
-                        "seed": seed,
-                    },
-                }
-            )
-
-            response = self.bedrock_runtime_client.invoke_model(
-                modelId="amazon.titan-image-generator-v1", body=request
-            )
-
-            response_body = json.loads(response["body"].read())
-            base64_image_data = response_body["images"][0]
-
-            return base64_image_data
-
-        except ClientError:
-            logger.error("Couldn't invoke Stable Diffusion XL")
-            raise
-
-    # snippet-end:[python.example_code.bedrock-runtime.InvokeTitanImage]
-
+    
     # snippet-start:[python.example_code.bedrock-runtime.InvokeModelWithResponseStream]
     async def invoke_model_with_response_stream(self, prompt):
         """
@@ -314,20 +226,6 @@ def invoke(wrapper, model_id, prompt, style_preset=None):
             completion = wrapper.invoke_llama2(prompt)
             print("Completion: " + completion)
 
-        elif model_id == "stability.stable-diffusion-xl":
-            seed = random.randint(0, 4294967295)
-            base64_image_data = wrapper.invoke_stable_diffusion(
-                prompt, seed, style_preset
-            )
-            image_path = save_image(base64_image_data, "diffusion")
-            print(f"The generated image has been saved to {image_path}")
-
-        elif model_id == "amazon.titan-image-generator-v1":
-            seed = random.randint(0, 2147483647)
-            base64_image_data = wrapper.invoke_titan_image(prompt, seed)
-            image_path = save_image(base64_image_data, "titan")
-            print(f"The generated image has been saved to {image_path}")
-
     except ClientError:
         logger.exception("Couldn't invoke model %s", model_id)
         raise
@@ -353,7 +251,7 @@ async def invoke_with_response_stream(wrapper, model_id, prompt):
 def usage_demo():
     """
     Demonstrates the invocation of various large-language and image generation models:
-    Anthropic Claude 2, AI21 Labs Jurassic-2, and Stability.ai Stable Diffusion XL.
+    Anthropic Claude 2, AI21 Labs Jurassic-2
     """
     logging.basicConfig(level=logging.INFO)
     print("-" * 88)
@@ -378,21 +276,8 @@ def usage_demo():
         )
     )
 
-   # image_generation_prompt = "stylized picture of a cute old steampunk robot"
-
-   # image_style_preset = "photographic"
-
-   # invoke(
-   #     wrapper,
-   #     "stability.stable-diffusion-xl",
-   #     image_generation_prompt,
-   #     image_style_preset,
-   # )
-
-   # invoke(wrapper, "amazon.titan-image-generator-v1", image_generation_prompt)
 
 
 if __name__ == "__main__":
     usage_demo()
 
-# snippet-end:[python.example_code.bedrock-runtime.BedrockRuntimeWrapper.class]
